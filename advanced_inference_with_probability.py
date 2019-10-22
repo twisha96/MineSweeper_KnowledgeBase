@@ -76,6 +76,7 @@ def get_min_max_probability_cells(knowledge_base, unexplored_cells):
 	equations = knowledge_base.keys()
 	overall_min_of_max = 1
 	cells_based_on_max = []
+	cells_unknown = []
 
 	for cell in unexplored_cells:
 		cell_max_prob = 0
@@ -88,6 +89,9 @@ def get_min_max_probability_cells(knowledge_base, unexplored_cells):
 				if curr_prob>cell_max_prob:
 					cell_max_prob = curr_prob
 		
+		if count==0:
+			cells_unknown.append(cell)
+
 		if cell_max_prob < overall_min_of_max:
 			overall_min_of_max = cell_max_prob
 			cells_based_on_max = []
@@ -96,7 +100,7 @@ def get_min_max_probability_cells(knowledge_base, unexplored_cells):
 		if cell_max_prob == overall_min_of_max:
 			cells_based_on_max.append(cell)
 
-	return cells_based_on_max
+	return cells_based_on_max.append(cells_unknown)
 
 def get_min_max_based_random_cell(knowledge_base, unexplored_cells):
 	cell_pool = get_min_max_probability_cells(knowledge_base, unexplored_cells)
@@ -106,10 +110,11 @@ def get_min_max_based_random_cell(knowledge_base, unexplored_cells):
 	index = random.randint(0,n-1)
 	return cell_pool[index]
 
-def get_min_avg_probability_cells(knowledge_base, unexplored_cells):
+def get_min_avg_probability_cells(unexplored_cells):
 	equations = knowledge_base.keys()
 	overall_min_of_avg = 1
 	cells_based_on_avg = []
+	cells_unknown = []
 
 	for cell in unexplored_cells:
 		cell_avg_prob = 0
@@ -120,6 +125,9 @@ def get_min_avg_probability_cells(knowledge_base, unexplored_cells):
 				value = knowledge_base[equation]
 				curr_prob = float(value)/len(equation)
 				cell_avg_prob = float((count-1)*cell_avg_prob + curr_prob)/count
+		
+		if count==0:
+			cells_unknown.append(cell)
 
 		if cell_avg_prob < overall_min_of_avg:
 			overall_min_of_avg = cell_avg_prob
@@ -129,7 +137,7 @@ def get_min_avg_probability_cells(knowledge_base, unexplored_cells):
 		if cell_avg_prob == overall_min_of_avg:
 			cells_based_on_avg.append(cell)
 
-	return cells_based_on_avg
+	return cells_based_on_avg.extend(cells_unknown)
 
 def get_min_avg_based_random_cell(knowledge_base, unexplored_cells):
 	cell_pool = get_min_avg_probability_cells(knowledge_base, unexplored_cells)
@@ -343,10 +351,10 @@ def run_baseline(board, fringe, explored_count, unexplored_cells, undiscovered_m
 			score = score + 1
 		fringe.extend(mine_cells)
 		
-		if undiscovered_mines==0:
-			for unexplored_cell in unexplored_cells:
-				if unexplored_cell not in safe_cells:
-					safe_cells.append(unexplored_cell)
+		# if undiscovered_mines==0:
+		# 	for unexplored_cell in unexplored_cells:
+		# 		if unexplored_cell not in safe_cells:
+		# 			safe_cells.append(unexplored_cell)
 		
 		for cords in safe_cells:
 			assert board[cords[0]][cords[1]].is_mine==False
@@ -372,11 +380,11 @@ def start_baseline(board, total_mines, knowledge_base):
 	dim = len(board)
 	unexplored_cells = get_unexplored_cells(dim, board)
 	undiscovered_mines = total_mines
-	knowledge_base[copy.deepcopy(frozenset(unexplored_cells))] = total_mines
+	# knowledge_base[copy.deepcopy(frozenset(unexplored_cells))] = total_mines
 
 	# For picking the first cell randomly
-	# (row_index, col_index) = get_min_max_based_random_cell(knowledge_base, unexplored_cells)
-	(row_index, col_index) = get_min_avg_based_random_cell(knowledge_base, unexplored_cells)
+	(row_index, col_index) = get_min_avg_based_random_cell(unexplored_cells)
+	# (row_index, col_index) = get_min_max_based_random_cell(unexplored_cells)
 	print "Initial cell ", row_index, col_index
 	fringe = [(row_index, col_index)]
 	inference_fringe = []
@@ -460,8 +468,8 @@ def start_baseline(board, total_mines, knowledge_base):
 			if explored_count == dim*dim:
 				return score
 
-		# (row_index, col_index) = get_min_max_based_random_cell(knowledge_base, unexplored_cells)
-		(row_index, col_index) = get_min_avg_based_random_cell(knowledge_base, unexplored_cells)
+		(row_index, col_index) = get_min_avg_based_random_cell(unexplored_cells)
+		# (row_index, col_index) = get_min_max_based_random_cell(unexplored_cells)
 		# no_of_random_cell_calls += 1
 		print "Random cell ", row_index, col_index
 		fringe = [(row_index, col_index)]
