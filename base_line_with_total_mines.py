@@ -4,6 +4,7 @@ import sys
 from collections import OrderedDict
 from cell import Cell
 import pdb
+import time
 
 def mine_found_update(row_index, col_index, board):
 	neighbors = gb.get_neighbors(board, row_index, col_index)
@@ -117,6 +118,9 @@ def run_baseline(board, fringe, explored_count, unexplored_cells, undiscovered_m
 	return explored_count, unexplored_cells, undiscovered_mines, score
 
 def start_baseline(board, total_mines):
+	start_time = time.time()
+	random_picks = 0
+
 	explored_count = 0
 	score = 0
 	dim = len(board)
@@ -124,6 +128,7 @@ def start_baseline(board, total_mines):
 	undiscovered_mines = total_mines
 	while True:
 		(row_index, col_index) = get_random_cords(unexplored_cells)
+		random_picks+=1
 		print "Random cell picked: ", row_index, col_index
 		fringe = [(row_index, col_index)]
 		board, undiscovered_mines = query_cell(row_index, col_index, board, undiscovered_mines)
@@ -133,17 +138,17 @@ def start_baseline(board, total_mines):
 			for cell in unexplored_cells:
 				board, undiscovered_mines = \
 				query_cell(cell[0], cell[1], board, undiscovered_mines)
-		gb.visualize_agent_board(game_board)
+		# gb.visualize_agent_board(game_board)
 		explored_count, unexplored_cells, undiscovered_mines, score = \
 			run_baseline(board, fringe, explored_count, unexplored_cells, undiscovered_mines, dim, score)
 		if explored_count == dim*dim:
-			return score
-	return score
+			return score, random_picks, time.time() - start_time
+	return score, random_picks, time.time() - start_time
 
 # Main Code
 dimension = 5
 total_mines = 10
 game_board = gb.get_board(dimension, total_mines)
-gb.visualize_board(game_board)
-score = start_baseline(game_board, total_mines)
+# gb.visualize_board(game_board)
+score, random_picks, exec_time = start_baseline(game_board, total_mines)
 print "Game over! Score: " + str(score) + "/" + str(total_mines)

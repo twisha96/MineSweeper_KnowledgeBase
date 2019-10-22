@@ -6,6 +6,7 @@ from cell import Cell
 import time
 import copy
 import pdb
+import time
 
 # function called whenever a random cell is mine or a cell is marked as mine
 def mine_found_update(row_index, col_index, board):
@@ -41,10 +42,10 @@ def remove_uncovered(cords, board):
 
 # function which works as a left-click in the original game
 def query_cell(row_index, col_index, board, undiscovered_mines):
-	print "Query cell -------------", row_index, col_index
+	# print "Query cell -------------", row_index, col_index
 	cell = board[row_index][col_index]
 	if cell.is_mine:
-		print "Oops... Mine cell queried"
+		# print "Oops... Mine cell queried"
 		cell.value = 1
 		mine_found_update(row_index, col_index, board)
 		undiscovered_mines -= 1
@@ -56,7 +57,7 @@ def query_cell(row_index, col_index, board, undiscovered_mines):
 
 # function which works as a right-click in the original game
 def mark_cell_as_mine(row_index, col_index, board, undiscovered_mines):
-	print "Marking cell -------------", row_index, col_index
+	# print "Marking cell -------------", row_index, col_index
 	cell = board[row_index][col_index]
 	cell.value = 1
 	mine_found_update(row_index, col_index, board)
@@ -165,17 +166,17 @@ def get_equation(x_cord, y_cord, board, knowledge_base):
 
 # update the knowledge base based on newly discovered safe cells and mine cells
 def update_knowledge_base(knowledge_base, board, mine_cells, safe_cells):
-	# print "update knowledge mine_cells: ", mine_cells
-	# print "update knowledge safe_cells: ", safe_cells
+	# # print "update knowledge mine_cells: ", mine_cells
+	# # print "update knowledge safe_cells: ", safe_cells
 	for cell in safe_cells:
 		knowledge_base = get_equation(cell[0], cell[1], board, knowledge_base)
 
 	for variables, value in knowledge_base.items():
 		knowledge_base.pop(variables)
 		intersection_mine_cells = set(variables).intersection(set(mine_cells))
-		# print "intersection_mine_cells", intersection_mine_cells
+		# # print "intersection_mine_cells", intersection_mine_cells
 		intersection_safe_cells = set(variables).intersection(set(safe_cells))
-		# print "intersection_safe_cells", intersection_safe_cells
+		# # print "intersection_safe_cells", intersection_safe_cells
 		variables = set(variables) - intersection_safe_cells - intersection_mine_cells
 		value -= len(intersection_mine_cells)
 		if len(variables)>0:
@@ -191,7 +192,7 @@ def advanced_inference(knowledge_base, board):
 	# keep reducing the equations till no more reductions are possible
 	while True:
 		all_equations = knowledge_base.keys()
-		# print "all_equations: ", all_equations
+		# # print "all_equations: ", all_equations
 		flag = 0
 		for equation1 in all_equations:
 			for equation2 in all_equations:
@@ -201,20 +202,20 @@ def advanced_inference(knowledge_base, board):
 					continue
 				value1 = knowledge_base[frozenset(equation1)]
 				value2 = knowledge_base[frozenset(equation2)]
-				# print "equation1", equation1, value1
-				# print "equation2", equation2, value2
+				# # print "equation1", equation1, value1
+				# # print "equation2", equation2, value2
 				
 				intersection_set = set(equation1).intersection(set(equation2))
-				# print "intersection set:", intersection_set
+				# # print "intersection set:", intersection_set
 				if intersection_set: 	
 					if value1>value2:
-						# print "case1"
+						# # print "case1"
 						tmp_set = set(equation1) - intersection_set
 						tmp_set_value = value1 - value2
-						# print "tmp set:", tmp_set
-						# print "tmp set value:", tmp_set_value
+						# # print "tmp set:", tmp_set
+						# # print "tmp set value:", tmp_set_value
 						if len(tmp_set)>0 and len(tmp_set)==tmp_set_value:
-							# print "mine cells case1: ", tmp_set
+							# # print "mine cells case1: ", tmp_set
 							mine_cells.extend(list(tmp_set))
 							flag = 1
 							knowledge_base.pop(frozenset(equation1))
@@ -225,13 +226,13 @@ def advanced_inference(knowledge_base, board):
 							knowledge_base[frozenset(equation1)] = value1
 							
 					elif value2>value1:
-						# print "case2"
+						# # print "case2"
 						tmp_set = set(equation2) - intersection_set
 						tmp_set_value = value2 - value1
-						# print "tmp set:", tmp_set
-						# print "tmp set value:", tmp_set_value
+						# # print "tmp set:", tmp_set
+						# # print "tmp set value:", tmp_set_value
 						if len(tmp_set)>0 and len(tmp_set)==tmp_set_value:
-							# print "mine cells case2: ", tmp_set
+							# # print "mine cells case2: ", tmp_set
 							mine_cells.extend(list(tmp_set))
 							flag = 1
 							knowledge_base.pop(frozenset(equation2))
@@ -256,7 +257,7 @@ def infer_from_knowledge_base(knowledge_base, board):
 	# keep reducing the equations till no more reductions are possible
 	while True:
 		all_equations = knowledge_base.keys()
-		# print "all_equations: ", all_equations
+		# # print "all_equations: ", all_equations
 		flag = 0
 		for equation1 in all_equations:
 			for equation2 in all_equations:
@@ -266,12 +267,12 @@ def infer_from_knowledge_base(knowledge_base, board):
 					continue
 				value1 = knowledge_base[frozenset(equation1)]
 				value2 = knowledge_base[frozenset(equation2)]
-				# print "equation1", equation1, value1
-				# print "equation2", equation2, value2
+				# # print "equation1", equation1, value1
+				# # print "equation2", equation2, value2
 				
 				if equation1!=equation2 and set(equation2).issubset(set(equation1)):
 					flag = 1	
-					print "Flag=1: Is subset"
+					# print "Flag=1: Is subset"
 					knowledge_base.pop(frozenset(equation1))
 					if equation1 in all_equations:
 						all_equations.remove(equation1)
@@ -282,7 +283,7 @@ def infer_from_knowledge_base(knowledge_base, board):
 		
 				if len(equation1) == value1:
 					flag = 1
-					print "Flag=1: Mine cells detected"
+					# print "Flag=1: Mine cells detected"
 					mine_cells.extend(list(equation1))
 					knowledge_base.pop(frozenset(equation1))
 					if equation1 in all_equations:
@@ -290,7 +291,7 @@ def infer_from_knowledge_base(knowledge_base, board):
 						
 				elif value1 == 0:
 					flag = 1
-					print "Flag=1: Safe cells detected"
+					# print "Flag=1: Safe cells detected"
 					safe_cells.extend(list(equation1))
 					knowledge_base.pop(frozenset(equation1))
 					if equation1 in all_equations:
@@ -324,18 +325,18 @@ def run_clue_check(row_index, col_index, board):
 
 # run baseline
 def run_baseline(board, fringe, explored_count, unexplored_cells, undiscovered_mines, dim, score, knowledge_base):
-	print "Running baseline"
+	# print "Running baseline"
 	while(fringe and len(fringe) > 0):
-		print "Baseline Fringe: ", fringe
+		# print "Baseline Fringe: ", fringe
 		((x_cord, y_cord)) = fringe.pop(0)
 		if explored_count == dim*dim:
 			return explored_count, unexplored_cells, undiscovered_mines, score, knowledge_base
 
 		# base line update	
-		print "Running baseline on: ", x_cord, y_cord
+		# print "Running baseline on: ", x_cord, y_cord
 		mine_cells, safe_cells = run_clue_check(x_cord, y_cord, board)
-		print "mine_cells", mine_cells
-		print "safe_cells", safe_cells
+		# print "mine_cells", mine_cells
+		# print "safe_cells", safe_cells
 		neighbors = []
 
 		for cords in mine_cells:
@@ -345,9 +346,9 @@ def run_baseline(board, fringe, explored_count, unexplored_cells, undiscovered_m
 				mark_cell_as_mine(cords[0], cords[1], board, undiscovered_mines)
 			explored_count += 1
 			unexplored_cells.remove((cords[0], cords[1]))
-			print "after marking mine cell knowledge:"
-			gb.display_knowledge_base(knowledge_base)
-			gb.visualize_agent_board(game_board)
+			# print "after marking mine cell knowledge:"
+			# gb.display_knowledge_base(knowledge_base)
+			# gb.visualize_agent_board(game_board)
 			score = score + 1
 		fringe.extend(mine_cells)
 		
@@ -362,9 +363,9 @@ def run_baseline(board, fringe, explored_count, unexplored_cells, undiscovered_m
 			undiscovered_mines = query_cell(cords[0], cords[1], board, undiscovered_mines)
 			explored_count += 1
 			unexplored_cells.remove((cords[0], cords[1]))
-			print "after querying safe cell knowledge:"
-			gb.display_knowledge_base(knowledge_base)
-			gb.visualize_agent_board(game_board)
+			# print "after querying safe cell knowledge:"
+			# gb.display_knowledge_base(knowledge_base)
+			# gb.visualize_agent_board(game_board)
 		fringe.extend(safe_cells)
 
 		knowledge_base = update_knowledge_base(knowledge_base, board, mine_cells, safe_cells)
@@ -375,6 +376,9 @@ def run_baseline(board, fringe, explored_count, unexplored_cells, undiscovered_m
 
 # start the algorithm
 def start_baseline(board, total_mines, knowledge_base):
+	start_time = time.time()
+	random_picks = 0
+
 	explored_count = 0
 	score = 0
 	dim = len(board)
@@ -384,8 +388,9 @@ def start_baseline(board, total_mines, knowledge_base):
 
 	# For picking the first cell randomly
 	(row_index, col_index) = get_min_avg_based_random_cell(unexplored_cells)
+	random_picks+=1
 	# (row_index, col_index) = get_min_max_based_random_cell(unexplored_cells)
-	print "Initial cell ", row_index, col_index
+	# print "Initial cell ", row_index, col_index
 	fringe = [(row_index, col_index)]
 	inference_fringe = []
 	undiscovered_mines = \
@@ -396,44 +401,44 @@ def start_baseline(board, total_mines, knowledge_base):
 		knowledge_base = update_knowledge_base(knowledge_base, board, [], [(row_index, col_index)])
 	else:
 		knowledge_base = update_knowledge_base(knowledge_base, board, [(row_index, col_index)], [])
-	print "after querying random cell knowledge:"
-	gb.display_knowledge_base(knowledge_base)
-	gb.visualize_agent_board(game_board)
+	# print "after querying random cell knowledge:"
+	# gb.display_knowledge_base(knowledge_base)
+	# gb.visualize_agent_board(game_board)
 	
 	# run baseline algorithm after opening one cell randomly
 	explored_count, unexplored_cells, undiscovered_mines, score, knowledge_base = \
 		run_baseline(board, fringe, explored_count, unexplored_cells, undiscovered_mines, \
 			dim, score, knowledge_base)
 	if explored_count == dim*dim:
-		return score
+		return score, random_picks, time.time() - start_time
 
 	while True:	
 		while True:	
-			print "Inferring..."	
+			# print "Inferring..."	
 			mine_cells_2, safe_cells_2, knowledge_base = \
 				infer_from_knowledge_base(knowledge_base, board)
-			print "mine_cells_2 ",  mine_cells_2
-			print "safe_cells_2 ",  safe_cells_2
+			# print "mine_cells_2 ",  mine_cells_2
+			# print "safe_cells_2 ",  safe_cells_2
 			
 			# no inference from basic inference
 			if len(mine_cells_2) == 0 and len(safe_cells_2) == 0:
-				print "Advanced Inference..."	
+				# print "Advanced Inference..."	
 				mine_cells_3, knowledge_base = \
 					advanced_inference(knowledge_base, board)
-				print "mine_cells_3 ",  mine_cells_3
+				# print "mine_cells_3 ",  mine_cells_3
 				
 				if len(mine_cells_3) == 0:
 					break
-				print "!!.......EUREKA......!!"
+				# print "!!.......EUREKA......!!"
 				for cords in mine_cells_3:
 					assert board[cords[0]][cords[1]].is_mine==True
 					undiscovered_mines = \
 						mark_cell_as_mine(cords[0], cords[1], board, undiscovered_mines)
 					explored_count += 1
 					unexplored_cells.remove((cords[0], cords[1]))
-					print "after marking mine cell knowledge:"
-					gb.display_knowledge_base(knowledge_base)
-					gb.visualize_agent_board(game_board)
+					# print "after marking mine cell knowledge:"
+					# gb.display_knowledge_base(knowledge_base)
+					# gb.visualize_agent_board(game_board)
 					score = score + 1
 				fringe.extend(mine_cells_3)
 
@@ -445,9 +450,9 @@ def start_baseline(board, total_mines, knowledge_base):
 						mark_cell_as_mine(cords[0], cords[1], board, undiscovered_mines)
 					explored_count += 1
 					unexplored_cells.remove((cords[0], cords[1]))
-					print "after marking mine cell knowledge:"
-					gb.display_knowledge_base(knowledge_base)
-					gb.visualize_agent_board(game_board)
+					# print "after marking mine cell knowledge:"
+					# gb.display_knowledge_base(knowledge_base)
+					# gb.visualize_agent_board(game_board)
 					score = score + 1
 				fringe.extend(mine_cells_2)
 
@@ -456,9 +461,9 @@ def start_baseline(board, total_mines, knowledge_base):
 					undiscovered_mines = query_cell(cords[0], cords[1], board, undiscovered_mines)
 					explored_count += 1
 					unexplored_cells.remove((cords[0], cords[1]))
-					print "after querying safe cell knowledge:"
-					gb.display_knowledge_base(knowledge_base)
-					gb.visualize_agent_board(game_board)
+					# print "after querying safe cell knowledge:"
+					# gb.display_knowledge_base(knowledge_base)
+					# gb.visualize_agent_board(game_board)
 				fringe.extend(safe_cells_2)
 			
 			knowledge_base = update_knowledge_base(knowledge_base, board, mine_cells_2, safe_cells_2)
@@ -466,12 +471,13 @@ def start_baseline(board, total_mines, knowledge_base):
 				run_baseline(board, fringe, explored_count, unexplored_cells, undiscovered_mines, \
 					dim, score, knowledge_base)
 			if explored_count == dim*dim:
-				return score
+				return score, random_picks, time.time() - start_time
 
 		(row_index, col_index) = get_min_avg_based_random_cell(unexplored_cells)
+		random_picks+=1
 		# (row_index, col_index) = get_min_max_based_random_cell(unexplored_cells)
 		# no_of_random_cell_calls += 1
-		print "Random cell ", row_index, col_index
+		# print "Random cell ", row_index, col_index
 		fringe = [(row_index, col_index)]
 		undiscovered_mines = query_cell(row_index, col_index, board, undiscovered_mines)
 		explored_count += 1
@@ -480,23 +486,23 @@ def start_baseline(board, total_mines, knowledge_base):
 			knowledge_base = update_knowledge_base(knowledge_base, board, [], [(row_index, col_index)])
 		else:
 			knowledge_base = update_knowledge_base(knowledge_base, board, [(row_index, col_index)], [])
-		gb.display_knowledge_base(knowledge_base)
-		gb.visualize_agent_board(game_board)
+		# gb.display_knowledge_base(knowledge_base)
+		# gb.visualize_agent_board(game_board)
 	
 		explored_count, unexplored_cells, undiscovered_mines, score, knowledge_base = \
 			run_baseline(board, fringe, explored_count, unexplored_cells, undiscovered_mines, \
 				dim, score, knowledge_base)
 		if explored_count == dim*dim:
-			return score
+			return score, random_picks, time.time() - start_time
 
-	return score
+	return score, random_picks, time.time() - start_time
 
 # Main code
 dimension = 5
 no_of_mines = 8
 game_board = gb.get_board(dimension, no_of_mines)
-gb.visualize_board(game_board)
+# gb.visualize_board(game_board)
 knowledge_base = {}
-score = start_baseline(game_board, no_of_mines, knowledge_base)
+score, random_picks, exec_time = start_baseline(game_board, no_of_mines, knowledge_base)
 print "Game over! Score: " + str(score) + "/" + str(no_of_mines)
 print "Agent accuracy: ", float(score)/no_of_mines*100, "%"

@@ -4,6 +4,7 @@ import sys
 from collections import OrderedDict
 from cell import Cell
 import pdb
+import time
 
 def mine_found_update(row_index, col_index, board):
 	neighbors = gb.get_neighbors(board, row_index, col_index)
@@ -91,7 +92,7 @@ def run_baseline(board, fringe, explored_count, unexplored_cells, dim, score):
 			mark_cell_as_mine(cords[0], cords[1], board)
 			explored_count += 1
 			unexplored_cells.remove((cords[0], cords[1]))
-			gb.visualize_agent_board(game_board)
+			# gb.visualize_agent_board(game_board)
 			score = score + 1
 		fringe.extend(mine_cells)
 
@@ -100,7 +101,7 @@ def run_baseline(board, fringe, explored_count, unexplored_cells, dim, score):
 			board = query_cell(cords[0], cords[1], board)
 			explored_count += 1
 			unexplored_cells.remove((cords[0], cords[1]))
-			gb.visualize_agent_board(game_board)
+			# gb.visualize_agent_board(game_board)
 		fringe.extend(safe_cells)
 
 		# remove duplicates from the fringe and keep the latest entry
@@ -109,6 +110,9 @@ def run_baseline(board, fringe, explored_count, unexplored_cells, dim, score):
 	return explored_count, unexplored_cells, score
 
 def start_baseline(board):
+	start_time = time.time()
+	random_picks = 0
+
 	explored_count = 0
 	score = 0
 	dim = len(board)
@@ -116,21 +120,22 @@ def start_baseline(board):
 
 	while True:
 		(row_index, col_index) = get_random_cords(unexplored_cells)
-		print "Random cell picked: ", row_index, col_index
+		# print "Random cell picked: ", row_index, col_index
+		random_picks+=1
 		fringe = [(row_index, col_index)]
 		board = query_cell(row_index, col_index, board)
 		explored_count += 1
 		unexplored_cells.remove((row_index, col_index))
-		gb.visualize_agent_board(game_board)
+		# gb.visualize_agent_board(game_board)
 		explored_count, unexplored_cells, score = run_baseline(board, fringe, explored_count, unexplored_cells, dim, score)
 		if explored_count == dim*dim:
-			return score
-	return score
+			return score, random_picks, time.time() - start_time
+	return score, random_picks, time.time() - start_time
 
 # Main Code
 dimension = 5
 no_of_mines = 10
 game_board = gb.get_board(dimension, no_of_mines)
-gb.visualize_board(game_board)
-score = start_baseline(game_board)
-print "Game over! Score: " + str(score) + "/" + str(no_of_mines)
+# gb.visualize_board(game_board)
+score, random_picks, exec_time = start_baseline(game_board)
+# print "Game over! Score: " + str(score) + "/" + str(no_of_mines)

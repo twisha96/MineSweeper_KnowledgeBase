@@ -300,6 +300,9 @@ def run_baseline(board, fringe, explored_count, unexplored_cells, undiscovered_m
 
 # start the algorithm
 def start_baseline(board, total_mines, knowledge_base):
+	start_time = time.time()
+	random_picks = 0
+
 	explored_count = 0
 	score = 0
 	dim = len(board)
@@ -309,6 +312,7 @@ def start_baseline(board, total_mines, knowledge_base):
 
 	# For picking the first cell randomly
 	(row_index, col_index) = get_random_cords(unexplored_cells)
+	random_picks += 1 
 	print "Initial cell ", row_index, col_index
 	fringe = [(row_index, col_index)]
 	inference_fringe = []
@@ -321,15 +325,15 @@ def start_baseline(board, total_mines, knowledge_base):
 	else:
 		knowledge_base = update_knowledge_base(knowledge_base, board, [(row_index, col_index)], [])
 	print "after querying random cell knowledge:"
-	gb.display_knowledge_base(knowledge_base)
-	gb.visualize_agent_board(game_board)
+	# gb.display_knowledge_base(knowledge_base)
+	# gb.visualize_agent_board(game_board)
 	
 	# run baseline algorithm after opening one cell randomly
 	explored_count, unexplored_cells, undiscovered_mines, score, knowledge_base = \
 		run_baseline(board, fringe, explored_count, unexplored_cells, undiscovered_mines, \
 			dim, score, knowledge_base)
 	if explored_count == dim*dim:
-		return score
+		return score, random_picks, time.time() - start_time
 
 	while True:	
 		while True:	
@@ -356,8 +360,8 @@ def start_baseline(board, total_mines, knowledge_base):
 					explored_count += 1
 					unexplored_cells.remove((cords[0], cords[1]))
 					print "after marking mine cell knowledge:"
-					gb.display_knowledge_base(knowledge_base)
-					gb.visualize_agent_board(game_board)
+					# gb.display_knowledge_base(knowledge_base)
+					# gb.visualize_agent_board(game_board)
 					score = score + 1
 				fringe.extend(mine_cells_3)
 
@@ -370,8 +374,8 @@ def start_baseline(board, total_mines, knowledge_base):
 					explored_count += 1
 					unexplored_cells.remove((cords[0], cords[1]))
 					print "after marking mine cell knowledge:"
-					gb.display_knowledge_base(knowledge_base)
-					gb.visualize_agent_board(game_board)
+					# gb.display_knowledge_base(knowledge_base)
+					# gb.visualize_agent_board(game_board)
 					score = score + 1
 				fringe.extend(mine_cells_2)
 
@@ -381,8 +385,8 @@ def start_baseline(board, total_mines, knowledge_base):
 					explored_count += 1
 					unexplored_cells.remove((cords[0], cords[1]))
 					print "after querying safe cell knowledge:"
-					gb.display_knowledge_base(knowledge_base)
-					gb.visualize_agent_board(game_board)
+					# gb.display_knowledge_base(knowledge_base)
+					# gb.visualize_agent_board(game_board)
 				fringe.extend(safe_cells_2)
 			
 			knowledge_base = update_knowledge_base(knowledge_base, board, mine_cells_2, safe_cells_2)
@@ -390,10 +394,11 @@ def start_baseline(board, total_mines, knowledge_base):
 				run_baseline(board, fringe, explored_count, unexplored_cells, undiscovered_mines, \
 					dim, score, knowledge_base)
 			if explored_count == dim*dim:
-				return score
+				return score, random_picks, time.time() - start_time
 
 
 		(row_index, col_index) = get_random_cords(unexplored_cells)
+		random_picks += 1 
 		# no_of_random_cell_calls += 1
 		print "Random cell ", row_index, col_index
 		fringe = [(row_index, col_index)]
@@ -404,23 +409,23 @@ def start_baseline(board, total_mines, knowledge_base):
 			knowledge_base = update_knowledge_base(knowledge_base, board, [], [(row_index, col_index)])
 		else:
 			knowledge_base = update_knowledge_base(knowledge_base, board, [(row_index, col_index)], [])
-		gb.display_knowledge_base(knowledge_base)
-		gb.visualize_agent_board(game_board)
+		# gb.display_knowledge_base(knowledge_base)
+		# gb.visualize_agent_board(game_board)
 	
 		explored_count, unexplored_cells, undiscovered_mines, score, knowledge_base = \
 			run_baseline(board, fringe, explored_count, unexplored_cells, undiscovered_mines, \
 				dim, score, knowledge_base)
 		if explored_count == dim*dim:
-			return score
+			return score, random_picks, time.time() - start_time
 
-	return score
+	return score, random_picks, time.time() - start_time
 
 # Main code
 dimension = 5
 no_of_mines = 8
 game_board = gb.get_board(dimension, no_of_mines)
-gb.visualize_board(game_board)
+# gb.visualize_board(game_board)
 knowledge_base = {}
-score = start_baseline(game_board, no_of_mines, knowledge_base)
+score, random_picks, exec_time = start_baseline(game_board, no_of_mines, knowledge_base)
 print "Game over! Score: " + str(score) + "/" + str(no_of_mines)
 print "Agent accuracy: ", float(score)/no_of_mines*100, "%"

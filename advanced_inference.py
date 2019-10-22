@@ -300,6 +300,9 @@ def run_baseline(board, fringe, explored_count, unexplored_cells, undiscovered_m
 
 # start the algorithm
 def start_baseline(board, total_mines, knowledge_base):
+	start_time = time.time()
+	random_picks = 0
+
 	explored_count = 0
 	score = 0
 	dim = len(board)
@@ -309,6 +312,7 @@ def start_baseline(board, total_mines, knowledge_base):
 
 	# For picking the first cell randomly
 	(row_index, col_index) = get_random_cords(unexplored_cells)
+	random_picks+=1
 	print "Initial cell ", row_index, col_index
 	fringe = [(row_index, col_index)]
 	inference_fringe = []
@@ -329,7 +333,7 @@ def start_baseline(board, total_mines, knowledge_base):
 		run_baseline(board, fringe, explored_count, unexplored_cells, undiscovered_mines, \
 			dim, score, knowledge_base)
 	if explored_count == dim*dim:
-		return score
+		return score, random_picks, time.time() - start_time
 
 	while True:	
 		while True:	
@@ -390,10 +394,11 @@ def start_baseline(board, total_mines, knowledge_base):
 				run_baseline(board, fringe, explored_count, unexplored_cells, undiscovered_mines, \
 					dim, score, knowledge_base)
 			if explored_count == dim*dim:
-				return score
+				return score, random_picks, time.time() - start_time
 
 
 		(row_index, col_index) = get_random_cords(unexplored_cells)
+		random_picks+=1
 		# no_of_random_cell_calls += 1
 		print "Random cell ", row_index, col_index
 		fringe = [(row_index, col_index)]
@@ -411,9 +416,9 @@ def start_baseline(board, total_mines, knowledge_base):
 			run_baseline(board, fringe, explored_count, unexplored_cells, undiscovered_mines, \
 				dim, score, knowledge_base)
 		if explored_count == dim*dim:
-			return score
+			return score, random_picks, time.time() - start_time
 
-	return score
+	return score, random_picks, time.time() - start_time
 
 # Main code
 dimension = 5
@@ -421,6 +426,6 @@ no_of_mines = 8
 game_board = gb.get_board(dimension, no_of_mines)
 gb.visualize_board(game_board)
 knowledge_base = {}
-score = start_baseline(game_board, no_of_mines, knowledge_base)
+score, random_picks, exec_time = start_baseline(game_board, no_of_mines, knowledge_base)
 print "Game over! Score: " + str(score) + "/" + str(no_of_mines)
 print "Agent accuracy: ", float(score)/no_of_mines*100, "%"
