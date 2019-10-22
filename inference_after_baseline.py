@@ -63,7 +63,6 @@ def mark_cell_as_mine(row_index, col_index, board, undiscovered_mines):
 	undiscovered_mines -= 1
 	return undiscovered_mines
 
-# get unexplored cells from the entire board
 def get_unexplored_cells(dim, board):
 	unexplored_cells = []
 	for i in range(dim):
@@ -108,77 +107,9 @@ def update_knowledge_base(knowledge_base, board, mine_cells, safe_cells):
 
 	return knowledge_base
 
-# advanced inference
-def advanced_inference(knowledge_base, board):
-	mine_cells = []
-	safe_cells = []
-
-	# keep reducing the equations till no more reductions are possible
-	while True:
-		all_equations = knowledge_base.keys()
-		# print "all_equations: ", all_equations
-		flag = 0
-		for equation1 in all_equations:
-			for equation2 in all_equations:
-				if equation1 not in all_equations:
-					break
-				if equation2 not in all_equations:
-					continue
-				value1 = knowledge_base[frozenset(equation1)]
-				value2 = knowledge_base[frozenset(equation2)]
-				# print "equation1", equation1, value1
-				# print "equation2", equation2, value2
-				
-				intersection_set = set(equation1).intersection(set(equation2))
-				# print "intersection set:", intersection_set
-				if intersection_set: 	
-					if value1>value2:
-						# print "case1"
-						tmp_set = set(equation1) - intersection_set
-						tmp_set_value = value1 - value2
-						# print "tmp set:", tmp_set
-						# print "tmp set value:", tmp_set_value
-						if len(tmp_set)>0 and len(tmp_set)==tmp_set_value:
-							# print "mine cells case1: ", tmp_set
-							mine_cells.extend(list(tmp_set))
-							flag = 1
-							knowledge_base.pop(frozenset(equation1))
-							if equation1 in all_equations:
-								all_equations.remove(equation1)
-							equation1 = equation1 - tmp_set
-							value1 -= tmp_set_value
-							knowledge_base[frozenset(equation1)] = value1
-							
-					elif value2>value1:
-						# print "case2"
-						tmp_set = set(equation2) - intersection_set
-						tmp_set_value = value2 - value1
-						# print "tmp set:", tmp_set
-						# print "tmp set value:", tmp_set_value
-						if len(tmp_set)>0 and len(tmp_set)==tmp_set_value:
-							# print "mine cells case2: ", tmp_set
-							mine_cells.extend(list(tmp_set))
-							flag = 1
-							knowledge_base.pop(frozenset(equation2))
-							if equation2 in all_equations:
-								all_equations.remove(equation2)
-							equation2 = equation2 - tmp_set
-							value2 -= tmp_set_value
-							knowledge_base[frozenset(equation2)] = value2
-							
-
-		if flag == 0:
-			break
-	
-	return list(OrderedDict.fromkeys(remove_uncovered(mine_cells, board))), \
-		   knowledge_base
-
-# check for subsets to reduce the equations in knowledge base
 def infer_from_knowledge_base(knowledge_base, board):
 	mine_cells = []
 	safe_cells = []
-
-	# keep reducing the equations till no more reductions are possible
 	while True:
 		all_equations = knowledge_base.keys()
 		# print "all_equations: ", all_equations
@@ -247,7 +178,6 @@ def run_clue_check(row_index, col_index, board):
 	covered_safe_cells = list(OrderedDict.fromkeys(remove_uncovered(safe_cells, board)))
 	return covered_mine_cells, covered_safe_cells
 
-# run baseline
 def run_baseline(board, fringe, explored_count, unexplored_cells, undiscovered_mines, dim, score, knowledge_base):
 	print "Running baseline"
 	while(fringe and len(fringe) > 0):
@@ -276,10 +206,10 @@ def run_baseline(board, fringe, explored_count, unexplored_cells, undiscovered_m
 			score = score + 1
 		fringe.extend(mine_cells)
 		
-		if undiscovered_mines==0:
-			for unexplored_cell in unexplored_cells:
-				if unexplored_cell not in safe_cells:
-					safe_cells.append(unexplored_cell)
+		# if undiscovered_mines==0:
+		# 	for unexplored_cell in unexplored_cells:
+		# 		if unexplored_cell not in safe_cells:
+		# 			safe_cells.append(unexplored_cell)
 		
 		for cords in safe_cells:
 			assert board[cords[0]][cords[1]].is_mine==False
@@ -298,14 +228,13 @@ def run_baseline(board, fringe, explored_count, unexplored_cells, undiscovered_m
 
 	return explored_count, unexplored_cells, undiscovered_mines, score, knowledge_base
 
-# start the algorithm
 def start_baseline(board, total_mines, knowledge_base):
 	explored_count = 0
 	score = 0
 	dim = len(board)
 	unexplored_cells = get_unexplored_cells(dim, board)
 	undiscovered_mines = total_mines
-	knowledge_base[copy.deepcopy(frozenset(unexplored_cells))] = total_mines
+	# knowledge_base[copy.deepcopy(frozenset(unexplored_cells))] = total_mines
 
 	# For picking the first cell randomly
 	(row_index, col_index) = get_random_cords(unexplored_cells)
@@ -333,57 +262,36 @@ def start_baseline(board, total_mines, knowledge_base):
 
 	while True:	
 		while True:	
+			# Inference loop till the inference fringe becomes empty
 			print "Inferring..."	
 			mine_cells_2, safe_cells_2, knowledge_base = \
 				infer_from_knowledge_base(knowledge_base, board)
 			print "mine_cells_2 ",  mine_cells_2
 			print "safe_cells_2 ",  safe_cells_2
-			
-			# no inference from basic inference
 			if len(mine_cells_2) == 0 and len(safe_cells_2) == 0:
-				print "Advanced Inference..."	
-				mine_cells_3, knowledge_base = \
-					advanced_inference(knowledge_base, board)
-				print "mine_cells_3 ",  mine_cells_3
-				
-				if len(mine_cells_3) == 0:
-					break
-				print "!!.......EUREKA......!!"
-				for cords in mine_cells_3:
-					assert board[cords[0]][cords[1]].is_mine==True
-					undiscovered_mines = \
-						mark_cell_as_mine(cords[0], cords[1], board, undiscovered_mines)
-					explored_count += 1
-					unexplored_cells.remove((cords[0], cords[1]))
-					print "after marking mine cell knowledge:"
-					gb.display_knowledge_base(knowledge_base)
-					gb.visualize_agent_board(game_board)
-					score = score + 1
-				fringe.extend(mine_cells_3)
+				break
 
-			# some inference from basic inference
-			else:
-				for cords in mine_cells_2:
-					assert board[cords[0]][cords[1]].is_mine==True
-					undiscovered_mines = \
-						mark_cell_as_mine(cords[0], cords[1], board, undiscovered_mines)
-					explored_count += 1
-					unexplored_cells.remove((cords[0], cords[1]))
-					print "after marking mine cell knowledge:"
-					gb.display_knowledge_base(knowledge_base)
-					gb.visualize_agent_board(game_board)
-					score = score + 1
-				fringe.extend(mine_cells_2)
+			for cords in mine_cells_2:
+				assert board[cords[0]][cords[1]].is_mine==True
+				undiscovered_mines = \
+					mark_cell_as_mine(cords[0], cords[1], board, undiscovered_mines)
+				explored_count += 1
+				unexplored_cells.remove((cords[0], cords[1]))
+				print "after marking mine cell knowledge:"
+				gb.display_knowledge_base(knowledge_base)
+				gb.visualize_agent_board(game_board)
+				score = score + 1
+			fringe.extend(mine_cells_2)
 
-				for cords in safe_cells_2:
-					assert board[cords[0]][cords[1]].is_mine==False
-					undiscovered_mines = query_cell(cords[0], cords[1], board, undiscovered_mines)
-					explored_count += 1
-					unexplored_cells.remove((cords[0], cords[1]))
-					print "after querying safe cell knowledge:"
-					gb.display_knowledge_base(knowledge_base)
-					gb.visualize_agent_board(game_board)
-				fringe.extend(safe_cells_2)
+			for cords in safe_cells_2:
+				assert board[cords[0]][cords[1]].is_mine==False
+				undiscovered_mines = query_cell(cords[0], cords[1], board, undiscovered_mines)
+				explored_count += 1
+				unexplored_cells.remove((cords[0], cords[1]))
+				print "after querying safe cell knowledge:"
+				gb.display_knowledge_base(knowledge_base)
+				gb.visualize_agent_board(game_board)
+			fringe.extend(safe_cells_2)
 			
 			knowledge_base = update_knowledge_base(knowledge_base, board, mine_cells_2, safe_cells_2)
 			explored_count, unexplored_cells, undiscovered_mines, score, knowledge_base = \
@@ -391,7 +299,6 @@ def start_baseline(board, total_mines, knowledge_base):
 					dim, score, knowledge_base)
 			if explored_count == dim*dim:
 				return score
-
 
 		(row_index, col_index) = get_random_cords(unexplored_cells)
 		# no_of_random_cell_calls += 1

@@ -72,6 +72,65 @@ def get_unexplored_cells(dim, board):
 				unexplored_cells.append((i,j))
 	return unexplored_cells
 
+def get_min_max_probability_cells(knowledge_base, unexplored_cells):
+	equations = knowledge_base.keys()
+	overall_min_of_max = 1
+	cells_based_on_max = []
+
+	for cell in unexplored_cells:
+		cell_max_prob = 0
+		count = 0
+		for equation in equations:
+			if cell in equation:
+				count+=1
+				value = knowledge_base[equation]
+				curr_prob = float(value)/len(equation)
+				if curr_prob>cell_max_prob:
+					cell_max_prob = curr_prob
+		
+		if cell_max_prob < overall_min_of_max:
+			overall_min_of_max = cell_max_prob
+			cells_based_on_max = []
+			cells_based_on_max.append(cell)
+
+		if cell_max_prob == overall_min_of_max:
+			cells_based_on_max.append(cell)
+
+	return cells_based_on_max
+
+def get_min_avg_probability_cells(knowledge_base, unexplored_cells):
+	equations = knowledge_base.keys()
+	overall_min_of_avg = 1
+	cells_based_on_avg = []
+
+	for cell in unexplored_cells:
+		cell_avg_prob = 0
+		count = 0
+		for equation in equations:
+			if cell in equation:
+				count+=1
+				value = knowledge_base[equation]
+				curr_prob = float(value)/len(equation)
+				cell_avg_prob = float((count-1)*cell_avg_prob + curr_prob)/count
+
+		if cell_avg_prob < overall_min_of_avg:
+			overall_min_of_avg = cell_avg_prob
+			cells_based_on_avg = []
+			cells_based_on_avg.append(cell)
+
+		if cell_avg_prob == overall_min_of_avg:
+			cells_based_on_avg.append(cell)
+
+	return cells_based_on_avg
+
+def get_min_based_prob(knowledge_base, unexplored_cells):
+	cell_pool = get_min_avg_probability_cells(knowledge_base, unexplored_cells)
+	n = len(cell_pool)
+	if n==1:
+		return cell_pool[0]
+	index = random.randint(0,n-1)
+	return cell_pool[index]
+
 # return the coordinates of a random unexplored cell
 def get_random_cords(unexplored_cells):
 	n = len(unexplored_cells)
@@ -308,7 +367,7 @@ def start_baseline(board, total_mines, knowledge_base):
 	knowledge_base[copy.deepcopy(frozenset(unexplored_cells))] = total_mines
 
 	# For picking the first cell randomly
-	(row_index, col_index) = get_random_cords(unexplored_cells)
+	(row_index, col_index) = get_min_based_prob(knowledge_base, unexplored_cells)
 	print "Initial cell ", row_index, col_index
 	fringe = [(row_index, col_index)]
 	inference_fringe = []
@@ -393,7 +452,7 @@ def start_baseline(board, total_mines, knowledge_base):
 				return score
 
 
-		(row_index, col_index) = get_random_cords(unexplored_cells)
+		(row_index, col_index) = get_min_based_prob(knowledge_base, unexplored_cells)
 		# no_of_random_cell_calls += 1
 		print "Random cell ", row_index, col_index
 		fringe = [(row_index, col_index)]

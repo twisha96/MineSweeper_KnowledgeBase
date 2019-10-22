@@ -276,10 +276,10 @@ def run_baseline(board, fringe, explored_count, unexplored_cells, undiscovered_m
 			score = score + 1
 		fringe.extend(mine_cells)
 		
-		if undiscovered_mines==0:
-			for unexplored_cell in unexplored_cells:
-				if unexplored_cell not in safe_cells:
-					safe_cells.append(unexplored_cell)
+		# if undiscovered_mines==0:
+		# 	for unexplored_cell in unexplored_cells:
+		# 		if unexplored_cell not in safe_cells:
+		# 			safe_cells.append(unexplored_cell)
 		
 		for cords in safe_cells:
 			assert board[cords[0]][cords[1]].is_mine==False
@@ -305,7 +305,7 @@ def start_baseline(board, total_mines, knowledge_base):
 	dim = len(board)
 	unexplored_cells = get_unexplored_cells(dim, board)
 	undiscovered_mines = total_mines
-	knowledge_base[copy.deepcopy(frozenset(unexplored_cells))] = total_mines
+	# knowledge_base[copy.deepcopy(frozenset(unexplored_cells))] = total_mines
 
 	# For picking the first cell randomly
 	(row_index, col_index) = get_random_cords(unexplored_cells)
