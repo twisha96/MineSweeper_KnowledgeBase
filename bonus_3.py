@@ -59,7 +59,7 @@ def query_cell(row_index, col_index, board, undiscovered_mines):
 def mark_cell_as_mine(row_index, col_index, board, undiscovered_mines):
 	# print "Marking cell -------------", row_index, col_index
 	cell = board[row_index][col_index]
-	cell.value = 1
+	cell.value = 20
 	mine_found_update(row_index, col_index, board)
 	undiscovered_mines -= 1
 	return undiscovered_mines

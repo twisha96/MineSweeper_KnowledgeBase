@@ -5,6 +5,7 @@ from cell import Cell
 import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
+from matplotlib.colors import LinearSegmentedColormap
 
 # set number of neighbors of edge cells to 5
 def assign_hidden_squares_to_edge_cells(board, dim):
@@ -117,8 +118,11 @@ def get_board(dim, n):
 
 # print the current knowledge of the agent
 def display_knowledge_base(knowledge_base):
+	print "Knowledge Base"
+	count = 1
 	for key, value in knowledge_base.items():
-	    print(sorted(key), value)
+	    print "Equation", count, sorted(key), "=", value
+	    count+=1
 
 # visualises the underlying game board generated
 def visualize_board(board):
@@ -131,10 +135,61 @@ def visualize_board(board):
 			if board[i][j].is_mine:
 				basic_board[i].append(10)
 			else:
-				basic_board[i].append(board[i][j].clue)
+				if board[i][j].value == 0:
+					basic_board[i].append(board[i][j].clue)
+				else:
+					basic_board[i].append(board[i][j].clue)
+	draw_board(basic_board)
 
-	# ax = sns.heatmap(round(corr,2), annot=True, ax=ax, cmap="coolwarm",fmt='.2f', linewidths=.1, linecolor="Black")
-	ax = sns.heatmap(basic_board, annot=True, cmap="Blues", cbar=False, linewidths=.1, linecolor="Black")
+def draw_board(basic_board):
+
+	colors = ["dimgray", "lightgray", "lightcoral", "black"]
+	cmap = sns.color_palette(colors)
+	ax = sns.heatmap(basic_board, annot=True, cmap=cmap, cbar=False, \
+		vmax = 30, vmin = -10,
+		linewidths=.1, linecolor="Black")
+
+	for text in ax.texts:
+	    if text.get_text() == '0' or text.get_text() == '-1':
+	        text.set_size(0)
+	        text.set_weight('bold')
+	        text.set_style('italic')
+	    if text.get_text() == '1':
+	        text.set_weight('bold')
+	        text.set_color('blue')
+	    if text.get_text() == '2':
+	        text.set_weight('bold')
+	        text.set_color('green')
+	    if text.get_text() == '3':
+	        text.set_weight('bold')
+	        text.set_color('crimson')
+	    if text.get_text() == '4':
+	        text.set_weight('bold')
+	        text.set_color('darkblue')
+	    if text.get_text() == '5':
+	        text.set_weight('bold')
+	        text.set_color('darkred')
+	    if text.get_text() == '6':
+	        text.set_weight('bold')
+	        text.set_color('olive')
+	    if text.get_text() == '7':
+	        text.set_weight('bold')
+	        text.set_color('midnightblue')
+	    if text.get_text() == '8':
+	        text.set_weight('bold')
+	        text.set_color('midnightblue')
+	    if text.get_text() == '9':
+	        text.set_weight('bold')
+	        text.set_color('midnightblue')
+	        text.set_text('?')
+	    if text.get_text() == '20':
+	        text.set_weight('bold')
+	        text.set_color('white')
+	        text.set_text('|>')
+	    if text.get_text() == '10':
+	        text.set_weight('bold')
+	        text.set_color('white')
+	        text.set_text('X')
 	plt.show()
 	plt.close()
 
@@ -150,14 +205,21 @@ def visualize_agent_board(board):
 				basic_board[i].append(-1)
 			else:
 				if board[i][j].is_mine:
-					basic_board[i].append(10)
+					if board[i][j].value == 1:
+						basic_board[i].append(10)
+					else:
+						basic_board[i].append(20)
 				else:
-					basic_board[i].append(board[i][j].clue)
+					if board[i][j].value == 0:
+						basic_board[i].append(board[i][j].clue)
+					else:
+						basic_board[i].append(9)
 					
 	# ax = sns.heatmap(round(corr,2), annot=True, ax=ax, cmap="coolwarm",fmt='.2f', linewidths=.1, linecolor="Black")
-	ax = sns.heatmap(basic_board, annot=True, cmap="Blues", cbar=False, linewidths=.1, linecolor="Black")
-	plt.show()
-	plt.close()
+	# ax = sns.heatmap(basic_board, annot=True, cmap="Blues", cbar=False, linewidths=.1, linecolor="Black")
+	# plt.show()
+	# plt.close()
+	draw_board(basic_board)
 
 # visualises the number of hidden squares around each cell
 def visualize_board_hidden_cells():
